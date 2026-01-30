@@ -21,17 +21,10 @@ export default class MainPresenter {
     render(tripEventsListView, this.listContainer);
 
     const points = this.pointsModel.getPoints();
-    const destinations = this.pointsModel.getDestinations();
-    const offers = this.pointsModel.getOffers();
 
     points.forEach((point, index) => {
-      const destination = destinations.find(
-        (d) => d.id === point.destinationId
-      );
-
-      const pointOffers = offers.filter(
-        (offer) => point.offers.includes(offer.id)
-      );
+      const destination = this.pointsModel.getDestinationById(point.destinationId);
+      const pointOffers = this.pointsModel.getOffersByIds(point.offers);
 
       if (index === 0) {
         render(

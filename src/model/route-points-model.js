@@ -18,4 +18,12 @@ export default class RoutePointsModel {
   getOffers() {
     return this.offers;
   }
+
+  getDestinationById(destinationId) {
+    return this.destinations.find((d) => d.id === destinationId);
+  }
+
+  getOffersByIds(offerIds) {
+    return this.offers.filter((offer) => offerIds.includes(offer.id));
+  }
 }
