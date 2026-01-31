@@ -1,17 +1,21 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
-export default class CreateFormView {
+export default class CreateFormView extends AbstractView{
+  #destinations;
+  #offers;
+
   constructor({ destinations = [], offers = [] } = {}) {
-    this.destinations = destinations;
-    this.offers = offers;
+    super();
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   getDestinationSection() {
-    if (this.destinations.length === 0) {
+    if (this.#destinations.length === 0) {
       return '';
     }
 
-    const destination = this.destinations[0];
+    const destination = this.#destinations[0];
 
     const photosTemplate = destination.pictures
       .map(
@@ -39,12 +43,12 @@ export default class CreateFormView {
     `;
   }
 
-  getTemplate() {
-    const destinationOptions = this.destinations
+  get template() {
+    const destinationOptions = this.#destinations
       .map((dest) => `<option value="${dest.name}"></option>`)
       .join('');
 
-    const offersTemplate = this.offers
+    const offersTemplate = this.#offers
       .map((offer) => `
         <div class="event__offer-selector">
           <input
@@ -167,12 +171,5 @@ export default class CreateFormView {
         </form>
       </li>
     `;
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
   }
 }
