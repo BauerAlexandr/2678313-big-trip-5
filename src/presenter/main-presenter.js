@@ -22,13 +22,13 @@ export default class MainPresenter {
 
     render(
       new CreateFormView({
-        destinations: this.pointsModel.getDestinations(),
-        offers: this.pointsModel.getOffers()
+        destinations: this.pointsModel.destinations,
+        offers: this.pointsModel.offers
       }),
       tripEventsListView.element
     );
 
-    const points = this.pointsModel.getPoints();
+    const points = this.pointsModel.points;
 
     points.forEach((point) => {
       const destination = this.pointsModel.getDestinationById(point.destinationId);
