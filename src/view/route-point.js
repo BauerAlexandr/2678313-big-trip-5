@@ -1,14 +1,23 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
-export default class RoutePointView {
-  constructor({ point, destination, offers }) {
-    this.point = point;
-    this.destination = destination;
-    this.offers = offers;
+export default class RoutePointView extends AbstractView{
+  #point;
+  #destination;
+  #offers;
+  #onEditClick;
+
+  constructor({ point, destination, offers, onEditClick}) {
+    super();
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#onEditClick = onEditClick;
+
+    this._setHandlers();
   }
 
-  getTemplate() {
-    const { dateFrom, dateTo, type, basePrice, isFavorite } = this.point;
+  get template() {
+    const { dateFrom, dateTo, type, basePrice, isFavorite } = this.#point;
     const startDate = new Date(dateFrom);
     const endDate = new Date(dateTo);
     const eventDate = startDate.toLocaleString('en-US', {
@@ -44,7 +53,7 @@ export default class RoutePointView {
           <div class="event__type">
             <img class="event__type-icon" width="42" height="42" src="img/icons/taxi.png" alt="Event type icon">
           </div>
-          <h3 class="event__title">${type.toUpperCase()} ${this.destination.name}</h3>
+          <h3 class="event__title">${type.toUpperCase()} ${this.#destination.name}</h3>
           <div class="event__schedule">
             <p class="event__time">
               <time class="event__start-time" datetime="${dateFrom}">${startTime}</time>
@@ -58,7 +67,7 @@ export default class RoutePointView {
           </p>
           <h4 class="visually-hidden">Offers:</h4>
           <ul class="event__selected-offers">
-            ${this.offers.map((offer) => `
+            ${this.#offers.map((offer) => `
               <li class="event__offer">
                 <span class="event__offer-title">${offer.title}</span>
                 &plus;&euro;&nbsp;
@@ -80,10 +89,9 @@ export default class RoutePointView {
     `;
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
+  _setHandlers() {
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#onEditClick);
   }
 }

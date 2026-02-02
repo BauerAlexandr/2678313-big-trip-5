@@ -1,22 +1,33 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
-export default class EditFormView {
-  constructor({ point = {}, destination = {}, offers = [] } = {}) {
-    this.point = point;
-    this.destination = destination;
-    this.offers = offers;
+export default class EditFormView extends AbstractView{
+  #point;
+  #destination;
+  #offers;
+  #onSubmit;
+  #onClose;
+
+  constructor({ point, destination, offers, onSubmit, onClose }) {
+    super();
+    this.#point = point;
+    this.#destination = destination;
+    this.#offers = offers;
+    this.#onSubmit = onSubmit;
+    this.#onClose = onClose;
+
+    this._setHandlers();
   }
 
-  getTemplate() {
+  get template() {
     const {
       type = 'flight',
       basePrice = '',
       dateFrom = '',
       dateTo = ''
-    } = this.point;
+    } = this.#point;
 
-    const destinationName = this.destination.name ?? '';
-    const destinationDescription = this.destination.description ?? '';
+    const destinationName = this.#destination.name ?? '';
+    const destinationDescription = this.#destination.description ?? '';
     return `
       <li class="trip-events__item">
         <form class="event event--edit" action="#" method="post">
@@ -114,7 +125,7 @@ export default class EditFormView {
               <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
               <div class="event__available-offers">
-                ${this.offers.map((offer) => `
+                ${this.#offers.map((offer) => `
                   <div class="event__offer-selector">
                     <input class="event__offer-checkbox visually-hidden" type="checkbox">
                     <label class="event__offer-label">
@@ -137,10 +148,13 @@ export default class EditFormView {
     `;
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
+  _setHandlers() {
+    this.element
+      .querySelector('form')
+      .addEventListener('submit', this.#onSubmit);
+
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#onClose);
   }
 }
