@@ -1,3 +1,5 @@
+import { nanoid } from 'nanoid';
+
 export const destinations = [
   {
     id: 'dest-1',
@@ -33,7 +35,7 @@ export const offers = [
 ];
 
 export const generateRoutePoint = () => ({
-  id: 'point-1',
+  id: nanoid(),
   type: 'flight',
   destinationId: 'dest-2',
   dateFrom: '2019-03-18T10:30',

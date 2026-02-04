@@ -1,10 +1,9 @@
 import FiltersView from '../view/filters.js';
 import SortView from '../view/sort.js';
-import RoutePointView from '../view/route-point.js';
-import EditFormView from '../view/form-editing.js';
 import CreateFormView from '../view/form-creation.js';
 import TripEventsListView from '../view/trip-events-list';
-import { render, replace } from '../framework/render.js';
+import { render } from '../framework/render.js';
+import RoutePointPresenter from './route-point-presenter.js';
 
 export default class MainPresenter {
   constructor({ filtersContainer, listContainer, pointsModel }) {
@@ -12,6 +11,19 @@ export default class MainPresenter {
     this.listContainer = listContainer;
     this.pointsModel = pointsModel;
   }
+
+  #pointPresenters = new Map();
+  #handlePointChange = (updatedPoint) => {
+    this.pointsModel.updatePoint(updatedPoint);
+
+    this.#pointPresenters
+      .get(updatedPoint.id)
+      .init(updatedPoint);
+  };
+
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
 
   init() {
     render(new FiltersView(), this.filtersContainer);
@@ -31,44 +43,17 @@ export default class MainPresenter {
     const points = this.pointsModel.points;
 
     points.forEach((point) => {
-      const destination = this.pointsModel.getDestinationById(point.destinationId);
-      const offers = this.pointsModel.getOffersByIds(point.offers);
-
-      const pointView = new RoutePointView({
+      const presenter = new RoutePointPresenter({
+        container: tripEventsListView.element,
         point,
-        destination,
-        offers,
-        onEditClick: () => replacePointToForm()
+        destinations: this.pointsModel.destinations,
+        offers: this.pointsModel.offers,
+        onDataChange: this.#handlePointChange,
+        onModeChange: this.#handleModeChange,
       });
 
-      const editFormView = new EditFormView({
-        point,
-        destination,
-        offers,
-        onSubmit: (evt) => {
-          evt.preventDefault();
-          replaceFormToPoint();
-        },
-        onClose: () => replaceFormToPoint()
-      });
-
-      function replacePointToForm () {
-        replace(editFormView, pointView);
-        document.addEventListener('keydown', onEscKeyDown);
-      }
-
-      function replaceFormToPoint () {
-        replace(pointView, editFormView);
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-
-      function onEscKeyDown(evt) {
-        if (evt.key === 'Escape') {
-          replaceFormToPoint();
-        }
-      }
-
-      render(pointView, tripEventsListView.element);
+      presenter.init(point);
+      this.#pointPresenters.set(point.id, presenter);
     });
   }
 }
