@@ -30,4 +30,10 @@ export default class RoutePointsModel {
   getOffersByIds(offerIds) {
     return this.#offers.filter((offer) => offerIds.includes(offer.id));
   }
+
+  updatePoint(updatedPoint) {
+    this.#points = this.#points.map((point) =>
+      point.id === updatedPoint.id ? updatedPoint : point
+    );
+  }
 }
