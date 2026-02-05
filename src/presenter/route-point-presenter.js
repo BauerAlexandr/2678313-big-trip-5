@@ -16,15 +16,16 @@ export default class RoutePointPresenter {
   #pointView;
   #editFormView;
   #mode = Mode.DEFAULT;
-
+  #pointsModel;
   #onDataChange;
   #onModeChange;
 
-  constructor({ container, point, destinations, offers, onDataChange, onModeChange }) {
+  constructor({ container, point, destinations, offers, pointsModel, onDataChange, onModeChange }) {
     this.#container = container;
     this.#point = point;
     this.#destinations = destinations;
     this.#offers = offers;
+    this.#pointsModel = pointsModel;
     this.#onDataChange = onDataChange;
     this.#onModeChange = onModeChange;
   }
@@ -68,7 +69,6 @@ export default class RoutePointPresenter {
   };
 
   #handleFavoriteClick = () => {
-    this.#onModeChange();
     this.#onDataChange({
       ...this.#point,
       isFavorite: !this.#point.isFavorite,
@@ -78,8 +78,8 @@ export default class RoutePointPresenter {
   init(point) {
     this.#point = point;
 
-    const destination = this.#destinations.find((d) => d.id === point.destinationId);
-    const offers = this.#offers.filter((o) => point.offers.includes(o.id));
+    const destination = this.#pointsModel.getDestinationById(point.destinationId);
+    const offers = this.#pointsModel.getOffersByIds(point.offers);
 
     const prevPointView = this.#pointView;
     const prevEditFormView = this.#editFormView;
