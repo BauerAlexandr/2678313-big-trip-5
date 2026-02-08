@@ -6,7 +6,7 @@ export default class RoutePointsModel {
   #offers;
 
   constructor() {
-    this.#points = Array.from({ length: 3 }, generateRoutePoint);
+    this.#points = Array.from({ length: 5 }, generateRoutePoint);
     this.#destinations = destinations;
     this.#offers = offers;
   }

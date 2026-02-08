@@ -1,11 +1,7 @@
 import RoutePointView from '../view/route-point.js';
 import EditFormView from '../view/form-editing.js';
-import { render, replace } from '../framework/render.js';
-
-const Mode = {
-  DEFAULT: 'DEFAULT',
-  EDITING: 'EDITING',
-};
+import { render, replace, remove } from '../framework/render.js';
+import { Mode } from '../const.js';
 
 export default class RoutePointPresenter {
   #container;
@@ -74,6 +70,11 @@ export default class RoutePointPresenter {
       isFavorite: !this.#point.isFavorite,
     });
   };
+
+  destroy() {
+    remove(this.#pointView);
+    remove(this.#editFormView);
+  }
 
   init(point) {
     this.#point = point;
