@@ -2,7 +2,7 @@ import FiltersView from '../view/filters.js';
 import SortView from '../view/sort.js';
 import CreateFormView from '../view/form-creation.js';
 import TripEventsListView from '../view/trip-events-list';
-import { render } from '../framework/render.js';
+import { render, remove } from '../framework/render.js';
 import RoutePointPresenter from './route-point-presenter.js';
 import { SortType } from '../const.js';
 
@@ -44,17 +44,21 @@ export default class MainPresenter {
 
     this.#sortPoints(sortType);
     this.#clearPointList();
-    this.#renderPoints();
+    this.#renderBoard();
   };
 
   init() {
     this.#boardPoints = [...this.#pointsModel.points].sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
 
+    this.#renderFilters();
     this.#renderBoard();
   }
 
-  #renderBoard() {
+  #renderFilters() {
     render(new FiltersView(), this.#filtersContainer);
+  }
+
+  #renderBoard() {
     this.#renderSort();
     render(this.#tripEventsListView, this.#listContainer);
 
@@ -73,6 +77,7 @@ export default class MainPresenter {
 
   #renderSort() {
     this.#sortComponent = new SortView({
+      currentSortType: this.#currentSortType,
       onSortTypeChange: this.#handleSortTypeChange
     });
     render(this.#sortComponent, this.#listContainer);
@@ -100,6 +105,7 @@ export default class MainPresenter {
   #clearPointList() {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
+    remove(this.#sortComponent);
     this.#tripEventsListView.element.innerHTML = '';
   }
 
