@@ -3,18 +3,14 @@ import { TYPES } from '../mock/route-point.js';
 
 export default class EditFormView extends AbstractStatefulView{
   #point;
-  #destination;
-  #offers;
   #destinations;
   #allOffers;
   #onSubmit;
   #onClose;
 
-  constructor({ point, destination, offers, destinations = [], allOffers = [], onSubmit, onClose }) {
+  constructor({ point, destinations = [], allOffers = [], onSubmit, onClose }) {
     super();
     this.#point = point;
-    this.#destination = destination;
-    this.#offers = offers;
     this.#destinations = destinations;
     this.#allOffers = allOffers;
     this.#onSubmit = onSubmit;
@@ -24,7 +20,7 @@ export default class EditFormView extends AbstractStatefulView{
       destinationId: point.destinationId
     };
 
-    this._setHandlers();
+    this._restoreHandlers();
   }
 
   get template() {
@@ -33,13 +29,11 @@ export default class EditFormView extends AbstractStatefulView{
       dateFrom = '',
       dateTo = ''
     } = this.#point;
-    const destination = this.#destinations.find((item) => item.id === this._state.destinationId) || this.#destination;
+    const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
     const destinationName = destination?.name || '';
     const destinationDescription = destination?.description || '';
     const destinationPictures = destination?.pictures || [];
-    const availableOffers = this.#allOffers.length
-      ? this.#allOffers.filter((offer) => offer.type === this._state.type)
-      : this.#offers;
+    const availableOffers = this.#allOffers.filter((offer) => offer.type === this._state.type);
     const idSuffix = this.#point.id || 'edit';
 
     return `
@@ -133,7 +127,7 @@ export default class EditFormView extends AbstractStatefulView{
     `;
   }
 
-  _setHandlers() {
+  _restoreHandlers() {
     this.element
       .querySelector('form')
       .addEventListener('submit', this.#onSubmit);
@@ -149,10 +143,6 @@ export default class EditFormView extends AbstractStatefulView{
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
-  }
-
-  _restoreHandlers() {
-    this._setHandlers();
   }
 
   #typeChangeHandler = (evt) => {

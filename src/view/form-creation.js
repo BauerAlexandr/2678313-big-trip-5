@@ -14,7 +14,7 @@ export default class CreateFormView extends AbstractStatefulView{
       destinationId: destinations[0]?.id || null
     };
 
-    this._setHandlers();
+    this._restoreHandlers();
   }
 
   getDestinationSection() {
@@ -143,7 +143,7 @@ export default class CreateFormView extends AbstractStatefulView{
     `;
   }
 
-  _setHandlers() {
+  _restoreHandlers() {
     this.element
       .querySelectorAll('.event__type-input')
       .forEach((input) => input.addEventListener('change', this.#typeChangeHandler));
@@ -151,10 +151,6 @@ export default class CreateFormView extends AbstractStatefulView{
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
-  }
-
-  _restoreHandlers() {
-    this._setHandlers();
   }
 
   #typeChangeHandler = (evt) => {
