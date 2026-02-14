@@ -24,7 +24,7 @@ export const destinations = [
     id: 'dest-2',
     name: 'Chamonix',
     description: 'Chamonix-Mont-Blanc is a resort area near the junction of France, Switzerland and Italy.',
-    pictures: Array.from({length: 3}, () => ({
+    pictures: Array.from({length: 2}, () => ({
       src: `https://loremflickr.com/248/152?random=${getRandomInteger(1, 100)}`,
       description: 'Mountain views'
     }))

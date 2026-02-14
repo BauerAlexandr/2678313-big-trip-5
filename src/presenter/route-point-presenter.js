@@ -97,6 +97,8 @@ export default class RoutePointPresenter {
       point,
       destination,
       offers,
+      destinations: this.#destinations,
+      allOffers: this.#offers,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleFormClose
     });

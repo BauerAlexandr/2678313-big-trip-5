@@ -1,6 +1,7 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { TYPES } from '../mock/route-point.js';
 
-export default class CreateFormView extends AbstractView{
+export default class CreateFormView extends AbstractStatefulView{
   #destinations;
   #offers;
 
@@ -8,19 +9,25 @@ export default class CreateFormView extends AbstractView{
     super();
     this.#destinations = destinations;
     this.#offers = offers;
+    this._state = {
+      type: 'flight',
+      destinationId: destinations[0]?.id || null
+    };
+
+    this._setHandlers();
   }
 
   getDestinationSection() {
-    if (this.#destinations.length === 0) {
+    const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
+
+    if (!destination) {
       return '';
     }
 
-    const destination = this.#destinations[0];
-
     const photosTemplate = destination.pictures
       .map(
-        (src) =>
-          `<img class="event__photo" src="${src}" alt="Event photo">`
+        (picture) =>
+          `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`
       )
       .join('');
 
@@ -47,8 +54,10 @@ export default class CreateFormView extends AbstractView{
     const destinationOptions = this.#destinations
       .map((dest) => `<option value="${dest.name}"></option>`)
       .join('');
+    const destinationName = this.#destinations.find((item) => item.id === this._state.destinationId)?.name || '';
 
     const offersTemplate = this.#offers
+      .filter((offer) => offer.type === this._state.type)
       .map((offer) => `
         <div class="event__offer-selector">
           <input
@@ -70,88 +79,49 @@ export default class CreateFormView extends AbstractView{
         <form class="event event--edit" action="#" method="post">
           <header class="event__header">
             <div class="event__type-wrapper">
-              <label class="event__type  event__type-btn" for="event-type-toggle-1">
+              <label class="event__type  event__type-btn" for="event-type-toggle-create">
                 <span class="visually-hidden">Choose event type</span>
-                <img class="event__type-icon" width="17" height="17" src="img/icons/flight.png" alt="Event type icon">
+                <img class="event__type-icon" width="17" height="17" src="img/icons/${this._state.type}.png" alt="Event type icon">
               </label>
-              <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+              <input class="event__type-toggle  visually-hidden" id="event-type-toggle-create" type="checkbox">
 
               <div class="event__type-list">
                 <fieldset class="event__type-group">
                   <legend class="visually-hidden">Event type</legend>
-
-                  <div class="event__type-item">
-                    <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi">
-                    <label class="event__type-label  event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-bus-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="bus">
-                    <label class="event__type-label  event__type-label--bus" for="event-type-bus-1">Bus</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-train-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="train">
-                    <label class="event__type-label  event__type-label--train" for="event-type-train-1">Train</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-ship-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="ship">
-                    <label class="event__type-label  event__type-label--ship" for="event-type-ship-1">Ship</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-drive-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="drive">
-                    <label class="event__type-label  event__type-label--drive" for="event-type-drive-1">Drive</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-flight-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="flight" checked>
-                    <label class="event__type-label  event__type-label--flight" for="event-type-flight-1">Flight</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-check-in-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="check-in">
-                    <label class="event__type-label  event__type-label--check-in" for="event-type-check-in-1">Check-in</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-sightseeing-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="sightseeing">
-                    <label class="event__type-label  event__type-label--sightseeing" for="event-type-sightseeing-1">Sightseeing</label>
-                  </div>
-
-                  <div class="event__type-item">
-                    <input id="event-type-restaurant-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="restaurant">
-                    <label class="event__type-label  event__type-label--restaurant" for="event-type-restaurant-1">Restaurant</label>
-                  </div>
+                  ${TYPES.map((eventType) => `
+                    <div class="event__type-item">
+                      <input id="event-type-${eventType}-create" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${eventType}" ${this._state.type === eventType ? 'checked' : ''}>
+                      <label class="event__type-label  event__type-label--${eventType}" for="event-type-${eventType}-create">${eventType}</label>
+                    </div>
+                  `).join('')}
                 </fieldset>
               </div>
             </div>
 
             <div class="event__field-group  event__field-group--destination">
-              <label class="event__label  event__type-output" for="event-destination-1">
-                Flight
+              <label class="event__label  event__type-output" for="event-destination-create">
+                ${this._state.type}
               </label>
-              <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination"list="destination-list-1">
-              <datalist id="destination-list-1">
+              <input class="event__input  event__input--destination" id="event-destination-create" type="text" name="event-destination" list="destination-list-create" value="${destinationName}">
+              <datalist id="destination-list-create">
                 ${destinationOptions}
               </datalist>
             </div>
 
             <div class="event__field-group  event__field-group--time">
-              <label class="visually-hidden" for="event-start-time-1">From</label>
-              <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="19/03/19 00:00">
+              <label class="visually-hidden" for="event-start-time-create">From</label>
+              <input class="event__input  event__input--time" id="event-start-time-create" type="text" name="event-start-time" value="19/03/19 00:00">
               &mdash;
-              <label class="visually-hidden" for="event-end-time-1">To</label>
-              <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="19/03/19 00:00">
+              <label class="visually-hidden" for="event-end-time-create">To</label>
+              <input class="event__input  event__input--time" id="event-end-time-create" type="text" name="event-end-time" value="19/03/19 00:00">
             </div>
 
             <div class="event__field-group  event__field-group--price">
-              <label class="event__label" for="event-price-1">
+              <label class="event__label" for="event-price-create">
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="">
+              <input class="event__input  event__input--price" id="event-price-create" type="text" name="event-price" value="">
             </div>
 
             <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -172,4 +142,35 @@ export default class CreateFormView extends AbstractView{
       </li>
     `;
   }
+
+  _setHandlers() {
+    this.element
+      .querySelectorAll('.event__type-input')
+      .forEach((input) => input.addEventListener('change', this.#typeChangeHandler));
+
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('change', this.#destinationChangeHandler);
+  }
+
+  _restoreHandlers() {
+    this._setHandlers();
+  }
+
+  #typeChangeHandler = (evt) => {
+    this.updateElement({type: evt.target.value});
+  };
+
+  #destinationChangeHandler = (evt) => {
+    const value = evt.target.value.trim();
+    const destination = this.#destinations.find((item) => item.name === value);
+
+    if (!destination) {
+      return;
+    }
+
+    this.updateElement({
+      destinationId: destination.id
+    });
+  };
 }
