@@ -95,8 +95,8 @@ export default class RoutePointPresenter {
 
     this.#editFormView = new EditFormView({
       point,
-      destination,
-      offers,
+      destinations: this.#destinations,
+      allOffers: this.#offers,
       onSubmit: this.#handleFormSubmit,
       onClose: this.#handleFormClose
     });
