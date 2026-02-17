@@ -11,4 +11,8 @@ const SortType = {
   OFFER: 'offer',
 };
 
-export { Mode, SortType };
+
+const HOUR_IN_MINUTES = 60;
+const DAY_IN_MINUTES = 1440;
+
+export { Mode, SortType, HOUR_IN_MINUTES, DAY_IN_MINUTES};

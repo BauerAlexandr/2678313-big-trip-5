@@ -29,5 +29,9 @@
     "last 2 versions",
     "not dead",
     "> 0.2%"
-  ]
+  ],
+  "dependencies": {
+    "dayjs": "1.11.7",
+    "flatpickr": "4.6.13"
+  }
 }

@@ -1,4 +1,6 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import 'flatpickr/dist/flatpickr.min.css';
+import { formatDateForInput, initDatepickers, clearDatepickers, syncDateRange, setDateToState } from './date-utils.js';
 import { TYPES } from '../mock/route-point.js';
 
 export default class EditFormView extends AbstractStatefulView{
@@ -7,6 +9,8 @@ export default class EditFormView extends AbstractStatefulView{
   #allOffers;
   #onSubmit;
   #onClose;
+  #dateFromPicker = null;
+  #dateToPicker = null;
 
   constructor({ point, destinations = [], allOffers = [], onSubmit, onClose }) {
     super();
@@ -17,7 +21,9 @@ export default class EditFormView extends AbstractStatefulView{
     this.#onClose = onClose;
     this._state = {
       type: point.type,
-      destinationId: point.destinationId
+      destinationId: point.destinationId,
+      dateFrom: point.dateFrom,
+      dateTo: point.dateTo
     };
 
     this._restoreHandlers();
@@ -26,15 +32,15 @@ export default class EditFormView extends AbstractStatefulView{
   get template() {
     const {
       basePrice = '',
-      dateFrom = '',
-      dateTo = ''
     } = this.#point;
+    const dateFrom = formatDateForInput(this._state.dateFrom);
+    const dateTo = formatDateForInput(this._state.dateTo);
     const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
-    const destinationName = destination?.name || '';
-    const destinationDescription = destination?.description || '';
-    const destinationPictures = destination?.pictures || [];
+    const destinationName = destination.name;
+    const destinationDescription = destination.description;
+    const destinationPictures = destination.pictures;
     const availableOffers = this.#allOffers.filter((offer) => offer.type === this._state.type);
-    const idSuffix = this.#point.id || 'edit';
+    const idSuffix = this.#point.id;
 
     return `
       <li class="trip-events__item">
@@ -128,6 +134,16 @@ export default class EditFormView extends AbstractStatefulView{
   }
 
   _restoreHandlers() {
+    ({ dateFromPicker: this.#dateFromPicker, dateToPicker: this.#dateToPicker } = initDatepickers(
+      this,
+      this.#dateFromPicker,
+      this.#dateToPicker,
+      this._state.dateFrom,
+      this._state.dateTo,
+      ([selectedDate]) => syncDateRange(this, this.#dateToPicker, selectedDate),
+      ([selectedDate]) => setDateToState(this, selectedDate)
+    ));
+
     this.element
       .querySelector('form')
       .addEventListener('submit', this.#onSubmit);
@@ -145,6 +161,14 @@ export default class EditFormView extends AbstractStatefulView{
       .addEventListener('change', this.#destinationChangeHandler);
   }
 
+  removeElement() {
+    ({ dateFromPicker: this.#dateFromPicker, dateToPicker: this.#dateToPicker } = clearDatepickers(
+      this.#dateFromPicker,
+      this.#dateToPicker
+    ));
+    super.removeElement();
+  }
+
   #typeChangeHandler = (evt) => {
     this.updateElement({type: evt.target.value});
   };
@@ -152,11 +176,6 @@ export default class EditFormView extends AbstractStatefulView{
   #destinationChangeHandler = (evt) => {
     const value = evt.target.value.trim();
     const nextDestination = this.#destinations.find((item) => item.name === value);
-
-    if (!nextDestination) {
-      return;
-    }
-
     this.updateElement({
       destinationId: nextDestination.id
     });
