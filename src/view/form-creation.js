@@ -1,17 +1,23 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
+import { formatDateForInput, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
 import { TYPES } from '../mock/route-point.js';
 
 export default class CreateFormView extends AbstractStatefulView{
   #destinations;
   #offers;
+  #dateFromPicker = null;
+  #dateToPicker = null;
 
   constructor({ destinations = [], offers = [] } = {}) {
     super();
     this.#destinations = destinations;
     this.#offers = offers;
+    const now = new Date();
     this._state = {
       type: 'flight',
-      destinationId: destinations[0]?.id || null
+      destinationId: destinations[0]?.id || null,
+      dateFrom: now,
+      dateTo: now
     };
 
     this._restoreHandlers();
@@ -19,11 +25,6 @@ export default class CreateFormView extends AbstractStatefulView{
 
   getDestinationSection() {
     const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
-
-    if (!destination) {
-      return '';
-    }
-
     const photosTemplate = destination.pictures
       .map(
         (picture) =>
@@ -54,7 +55,9 @@ export default class CreateFormView extends AbstractStatefulView{
     const destinationOptions = this.#destinations
       .map((dest) => `<option value="${dest.name}"></option>`)
       .join('');
-    const destinationName = this.#destinations.find((item) => item.id === this._state.destinationId)?.name || '';
+    const destinationName = this.#destinations.find((item) => item.id === this._state.destinationId).name;
+    const dateFrom = formatDateForInput(this._state.dateFrom);
+    const dateTo = formatDateForInput(this._state.dateTo);
 
     const offersTemplate = this.#offers
       .filter((offer) => offer.type === this._state.type)
@@ -110,10 +113,10 @@ export default class CreateFormView extends AbstractStatefulView{
 
             <div class="event__field-group  event__field-group--time">
               <label class="visually-hidden" for="event-start-time-create">From</label>
-              <input class="event__input  event__input--time" id="event-start-time-create" type="text" name="event-start-time" value="19/03/19 00:00">
+              <input class="event__input  event__input--time" id="event-start-time-create" type="text" name="event-start-time" value="${dateFrom}">
               &mdash;
               <label class="visually-hidden" for="event-end-time-create">To</label>
-              <input class="event__input  event__input--time" id="event-end-time-create" type="text" name="event-end-time" value="19/03/19 00:00">
+              <input class="event__input  event__input--time" id="event-end-time-create" type="text" name="event-end-time" value="${dateTo}">
             </div>
 
             <div class="event__field-group  event__field-group--price">
@@ -144,6 +147,27 @@ export default class CreateFormView extends AbstractStatefulView{
   }
 
   _restoreHandlers() {
+    const handleDateFromChange = ([selectedDate]) => {
+      const { dateFrom, dateTo } = normalizeDateRange(selectedDate, this._state.dateTo);
+      this._setState({ dateFrom, dateTo });
+      this.#dateToPicker.set('minDate', dateFrom);
+      this.#dateToPicker.setDate(dateTo, true);
+    };
+
+    const handleDateToChange = ([selectedDate]) => {
+      this._setState({ dateTo: selectedDate });
+    };
+
+    ({ dateFromPicker: this.#dateFromPicker, dateToPicker: this.#dateToPicker } = initDatepickers(
+      this,
+      this.#dateFromPicker,
+      this.#dateToPicker,
+      this._state.dateFrom,
+      this._state.dateTo,
+      handleDateFromChange,
+      handleDateToChange
+    ));
+
     this.element
       .querySelectorAll('.event__type-input')
       .forEach((input) => input.addEventListener('change', this.#typeChangeHandler));
@@ -153,6 +177,14 @@ export default class CreateFormView extends AbstractStatefulView{
       .addEventListener('change', this.#destinationChangeHandler);
   }
 
+  removeElement() {
+    ({ dateFromPicker: this.#dateFromPicker, dateToPicker: this.#dateToPicker } = clearDatepickers(
+      this.#dateFromPicker,
+      this.#dateToPicker
+    ));
+    super.removeElement();
+  }
+
   #typeChangeHandler = (evt) => {
     this.updateElement({type: evt.target.value});
   };
@@ -160,11 +192,6 @@ export default class CreateFormView extends AbstractStatefulView{
   #destinationChangeHandler = (evt) => {
     const value = evt.target.value.trim();
     const destination = this.#destinations.find((item) => item.name === value);
-
-    if (!destination) {
-      return;
-    }
-
     this.updateElement({
       destinationId: destination.id
     });

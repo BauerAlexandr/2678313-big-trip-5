@@ -1,4 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import dayjs from 'dayjs';
+import { formatDuration } from './date-utils.js';
 
 export default class RoutePointView extends AbstractView{
   #point;
@@ -20,33 +22,10 @@ export default class RoutePointView extends AbstractView{
 
   get template() {
     const { dateFrom, dateTo, type, basePrice, isFavorite } = this.#point;
-    const startDate = new Date(dateFrom);
-    const endDate = new Date(dateTo);
-    const eventDate = startDate.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    }).toUpperCase();
-
-    const startTime = startDate.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    const endTime = endDate.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    const durationMs = endDate - startDate;
-    const minutes = Math.floor(durationMs / 60000);
-    const hours = Math.floor(minutes / 60);
-
-    let duration = '';
-    if (hours > 0) {
-      duration = `${hours}H ${minutes % 60}M`;
-    } else {
-      duration = `${minutes}M`;
-    }
+    const eventDate = dayjs(dateFrom).format('MMM D').toUpperCase();
+    const startTime = dayjs(dateFrom).format('HH:mm');
+    const endTime = dayjs(dateTo).format('HH:mm');
+    const duration = formatDuration(dateFrom, dateTo);
 
     return `
       <li class="trip-events__item">
