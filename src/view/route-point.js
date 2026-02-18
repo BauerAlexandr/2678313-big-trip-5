@@ -1,28 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
-import {HOUR_IN_MINUTES, DAY_IN_MINUTES} from '../const.js';
-
-
-const formatDuration = (dateFrom, dateTo) => {
-  const diff = dayjs(dateTo).diff(dayjs(dateFrom), 'minute');
-
-  if (diff < HOUR_IN_MINUTES) {
-    return `${diff}M`;
-  }
-
-  if (diff < DAY_IN_MINUTES) {
-    const hours = Math.floor(diff / HOUR_IN_MINUTES);
-    const minutes = diff % HOUR_IN_MINUTES;
-
-    return `${String(hours).padStart(2, '0')}H ${String(minutes).padStart(2, '0')}M`;
-  }
-
-  const days = Math.floor(diff / DAY_IN_MINUTES);
-  const restHours = Math.floor((diff % DAY_IN_MINUTES) / HOUR_IN_MINUTES);
-  const restMinutes = diff % HOUR_IN_MINUTES;
-
-  return `${String(days).padStart(2, '0')}D ${String(restHours).padStart(2, '0')}H ${String(restMinutes).padStart(2, '0')}M`;
-};
+import { formatDuration } from './date-utils.js';
 
 export default class RoutePointView extends AbstractView{
   #point;

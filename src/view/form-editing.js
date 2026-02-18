@@ -1,6 +1,6 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import 'flatpickr/dist/flatpickr.min.css';
-import { formatDateForInput, initDatepickers, clearDatepickers, syncDateRange, setDateToState } from './date-utils.js';
+import { formatDateForInput, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
 import { TYPES } from '../mock/route-point.js';
 
 export default class EditFormView extends AbstractStatefulView{
@@ -134,14 +134,25 @@ export default class EditFormView extends AbstractStatefulView{
   }
 
   _restoreHandlers() {
+    const handleDateFromChange = ([selectedDate]) => {
+      const { dateFrom, dateTo } = normalizeDateRange(selectedDate, this._state.dateTo);
+      this._setState({ dateFrom, dateTo });
+      this.#dateToPicker.set('minDate', dateFrom);
+      this.#dateToPicker.setDate(dateTo, true);
+    };
+
+    const handleDateToChange = ([selectedDate]) => {
+      this._setState({ dateTo: selectedDate });
+    };
+
     ({ dateFromPicker: this.#dateFromPicker, dateToPicker: this.#dateToPicker } = initDatepickers(
       this,
       this.#dateFromPicker,
       this.#dateToPicker,
       this._state.dateFrom,
       this._state.dateTo,
-      ([selectedDate]) => syncDateRange(this, this.#dateToPicker, selectedDate),
-      ([selectedDate]) => setDateToState(this, selectedDate)
+      handleDateFromChange,
+      handleDateToChange
     ));
 
     this.element
