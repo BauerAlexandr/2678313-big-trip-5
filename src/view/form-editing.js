@@ -1,6 +1,6 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import 'flatpickr/dist/flatpickr.min.css';
-import { formatDateForInput, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
+import { formatDateForInput, formatDateForPoint, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
 import { TYPES } from '../mock/route-point.js';
 
 export default class EditFormView extends AbstractStatefulView{
@@ -8,16 +8,18 @@ export default class EditFormView extends AbstractStatefulView{
   #destinations;
   #allOffers;
   #onSubmit;
+  #onDelete;
   #onClose;
   #dateFromPicker = null;
   #dateToPicker = null;
 
-  constructor({ point, destinations = [], allOffers = [], onSubmit, onClose }) {
+  constructor({ point, destinations = [], allOffers = [], onSubmit, onDelete, onClose }) {
     super();
     this.#point = point;
     this.#destinations = destinations;
     this.#allOffers = allOffers;
     this.#onSubmit = onSubmit;
+    this.#onDelete = onDelete;
     this.#onClose = onClose;
     this._state = {
       type: point.type,
@@ -30,15 +32,13 @@ export default class EditFormView extends AbstractStatefulView{
   }
 
   get template() {
-    const {
-      basePrice = '',
-    } = this.#point;
+    const { basePrice = '' } = this.#point;
     const dateFrom = formatDateForInput(this._state.dateFrom);
     const dateTo = formatDateForInput(this._state.dateTo);
     const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
-    const destinationName = destination.name;
-    const destinationDescription = destination.description;
-    const destinationPictures = destination.pictures;
+    const destinationName = destination?.name ?? '';
+    const destinationDescription = destination?.description ?? '';
+    const destinationPictures = destination?.pictures ?? [];
     const availableOffers = this.#allOffers.filter((offer) => offer.type === this._state.type);
     const idSuffix = this.#point.id;
 
@@ -70,7 +70,7 @@ export default class EditFormView extends AbstractStatefulView{
               <label class="event__label  event__type-output" for="event-destination-${idSuffix}">
                 ${this._state.type}
               </label>
-              <input class="event__input  event__input--destination" id="event-destination-${idSuffix}" type="text" name="event-destination" value="${destinationName}" list="destination-list-${idSuffix}">
+              <input class="event__input  event__input--destination" id="event-destination-${idSuffix}" type="text" name="event-destination" value="${destinationName}" list="destination-list-${idSuffix}" required>
               <datalist id="destination-list-${idSuffix}">
                 ${this.#destinations.map((item) => `<option value="${item.name}"></option>`).join('')}
               </datalist>
@@ -89,7 +89,7 @@ export default class EditFormView extends AbstractStatefulView{
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-${idSuffix}" type="text" name="event-price" value="${basePrice}">
+              <input class="event__input  event__input--price" id="event-price-${idSuffix}" type="text" inputmode="numeric" name="event-price" value="${basePrice}" required>
             </div>
 
             <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -157,7 +157,11 @@ export default class EditFormView extends AbstractStatefulView{
 
     this.element
       .querySelector('form')
-      .addEventListener('submit', this.#onSubmit);
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element
+      .querySelector('form')
+      .addEventListener('reset', this.#formDeleteHandler);
 
     this.element
       .querySelector('.event__rollup-btn')
@@ -170,6 +174,14 @@ export default class EditFormView extends AbstractStatefulView{
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('input', this.#destinationInputHandler);
+
+    this.element
+      .querySelector('.event__input--price')
+      .addEventListener('input', this.#priceInputHandler);
   }
 
   removeElement() {
@@ -180,15 +192,60 @@ export default class EditFormView extends AbstractStatefulView{
     super.removeElement();
   }
 
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    const destinationInput = this.element.querySelector('.event__input--destination');
+    const destination = this.#destinations.find((item) => item.name === destinationInput.value.trim());
+
+    if (!destination) {
+      destinationInput.setCustomValidity('Choose destination from the list');
+      destinationInput.reportValidity();
+      return;
+    }
+
+    const priceValue = this.element.querySelector('.event__input--price').value.trim();
+    const basePrice = Number(priceValue);
+    if (!Number.isFinite(basePrice)) {
+      return;
+    }
+
+    this.#onSubmit({
+      ...this.#point,
+      type: this._state.type,
+      destinationId: destination.id,
+      dateFrom: formatDateForPoint(this._state.dateFrom),
+      dateTo: formatDateForPoint(this._state.dateTo),
+      basePrice
+    });
+  };
+
+  #formDeleteHandler = (evt) => {
+    evt.preventDefault();
+    this.#onDelete(this.#point);
+  };
+
   #typeChangeHandler = (evt) => {
-    this.updateElement({type: evt.target.value});
+    this.updateElement({ type: evt.target.value });
+  };
+
+  #destinationInputHandler = (evt) => {
+    evt.target.setCustomValidity('');
   };
 
   #destinationChangeHandler = (evt) => {
     const value = evt.target.value.trim();
     const nextDestination = this.#destinations.find((item) => item.name === value);
+
+    if (!nextDestination) {
+      return;
+    }
+
     this.updateElement({
       destinationId: nextDestination.id
     });
+  };
+
+  #priceInputHandler = (evt) => {
+    evt.target.value = evt.target.value.replace(/\D/g, '');
   };
 }

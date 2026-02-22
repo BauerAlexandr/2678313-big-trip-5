@@ -45,10 +45,12 @@ export const offers = [
 ];
 
 export const generateRoutePoint = () => {
+  const year = getRandomInteger(2024, 2026);
+  const month = getRandomInteger(1, 12);
   const day = getRandomInteger(10, 25);
-  const durationHours = getRandomInteger(1, 48);
-  const dateFrom = `2024-03-${day}T${getRandomInteger(10, 12)}:00`;
-  const dateTo = `2024-03-${day + Math.floor(durationHours / 24)}T${getRandomInteger(13, 23)}:00`;
+  const durationHours = getRandomInteger(1, 168);
+  const dateFrom = `${year}-${month}-${day}T${getRandomInteger(10, 12)}:00`;
+  const dateTo = `${year}-${month}-${day + Math.floor(durationHours / 24)}T${getRandomInteger(13, 23)}:00`;
 
   return {
     id: nanoid(),

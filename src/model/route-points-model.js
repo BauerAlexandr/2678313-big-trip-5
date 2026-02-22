@@ -15,6 +15,14 @@ export default class RoutePointsModel {
     return this.#points;
   }
 
+  getPoints() {
+    return this.#points;
+  }
+
+  setPoints(points) {
+    this.#points = [...points];
+  }
+
   get destinations() {
     return this.#destinations;
   }
@@ -35,5 +43,13 @@ export default class RoutePointsModel {
     this.#points = this.#points.map((point) =>
       point.id === updatedPoint.id ? updatedPoint : point
     );
+  }
+
+  addPoint(newPoint) {
+    this.#points = [newPoint, ...this.#points];
+  }
+
+  deletePoint(pointToDelete) {
+    this.#points = this.#points.filter((point) => point.id !== pointToDelete.id);
   }
 }
