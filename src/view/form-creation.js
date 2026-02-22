@@ -1,17 +1,22 @@
+import { nanoid } from 'nanoid';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { formatDateForInput, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
+import { formatDateForInput, formatDateForPoint, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
 import { TYPES } from '../mock/route-point.js';
 
 export default class CreateFormView extends AbstractStatefulView{
   #destinations;
   #offers;
+  #onSubmit;
+  #onCancel;
   #dateFromPicker = null;
   #dateToPicker = null;
 
-  constructor({ destinations = [], offers = [] } = {}) {
+  constructor({ destinations = [], offers = [], onSubmit, onCancel } = {}) {
     super();
     this.#destinations = destinations;
     this.#offers = offers;
+    this.#onSubmit = onSubmit;
+    this.#onCancel = onCancel;
     const now = new Date();
     this._state = {
       type: 'flight',
@@ -25,11 +30,13 @@ export default class CreateFormView extends AbstractStatefulView{
 
   getDestinationSection() {
     const destination = this.#destinations.find((item) => item.id === this._state.destinationId);
+
+    if (!destination) {
+      return '';
+    }
+
     const photosTemplate = destination.pictures
-      .map(
-        (picture) =>
-          `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`
-      )
+      .map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`)
       .join('');
 
     return `
@@ -52,10 +59,8 @@ export default class CreateFormView extends AbstractStatefulView{
   }
 
   get template() {
-    const destinationOptions = this.#destinations
-      .map((dest) => `<option value="${dest.name}"></option>`)
-      .join('');
-    const destinationName = this.#destinations.find((item) => item.id === this._state.destinationId).name;
+    const destinationOptions = this.#destinations.map((dest) => `<option value="${dest.name}"></option>`).join('');
+    const destinationName = this.#destinations.find((item) => item.id === this._state.destinationId)?.name || '';
     const dateFrom = formatDateForInput(this._state.dateFrom);
     const dateTo = formatDateForInput(this._state.dateTo);
 
@@ -105,7 +110,7 @@ export default class CreateFormView extends AbstractStatefulView{
               <label class="event__label  event__type-output" for="event-destination-create">
                 ${this._state.type}
               </label>
-              <input class="event__input  event__input--destination" id="event-destination-create" type="text" name="event-destination" list="destination-list-create" value="${destinationName}">
+              <input class="event__input  event__input--destination" id="event-destination-create" type="text" name="event-destination" list="destination-list-create" value="${destinationName}" required>
               <datalist id="destination-list-create">
                 ${destinationOptions}
               </datalist>
@@ -124,7 +129,7 @@ export default class CreateFormView extends AbstractStatefulView{
                 <span class="visually-hidden">Price</span>
                 &euro;
               </label>
-              <input class="event__input  event__input--price" id="event-price-create" type="text" name="event-price" value="">
+              <input class="event__input  event__input--price" id="event-price-create" type="text" inputmode="numeric" name="event-price" value="" required>
             </div>
 
             <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -169,12 +174,28 @@ export default class CreateFormView extends AbstractStatefulView{
     ));
 
     this.element
+      .querySelector('form')
+      .addEventListener('submit', this.#formSubmitHandler);
+
+    this.element
+      .querySelector('form')
+      .addEventListener('reset', this.#formCancelHandler);
+
+    this.element
       .querySelectorAll('.event__type-input')
       .forEach((input) => input.addEventListener('change', this.#typeChangeHandler));
 
     this.element
       .querySelector('.event__input--destination')
       .addEventListener('change', this.#destinationChangeHandler);
+
+    this.element
+      .querySelector('.event__input--destination')
+      .addEventListener('input', this.#destinationInputHandler);
+
+    this.element
+      .querySelector('.event__input--price')
+      .addEventListener('input', this.#priceInputHandler);
   }
 
   removeElement() {
@@ -185,15 +206,62 @@ export default class CreateFormView extends AbstractStatefulView{
     super.removeElement();
   }
 
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    const destinationInput = this.element.querySelector('.event__input--destination');
+    const destination = this.#destinations.find((item) => item.name === destinationInput.value.trim());
+
+    if (!destination) {
+      destinationInput.setCustomValidity('Choose destination from the list');
+      destinationInput.reportValidity();
+      return;
+    }
+
+    const priceValue = this.element.querySelector('.event__input--price').value.trim();
+    const basePrice = Number(priceValue);
+    if (!Number.isFinite(basePrice)) {
+      return;
+    }
+
+    this.#onSubmit({
+      id: nanoid(),
+      type: this._state.type,
+      destinationId: destination.id,
+      dateFrom: formatDateForPoint(this._state.dateFrom),
+      dateTo: formatDateForPoint(this._state.dateTo),
+      basePrice,
+      offers: [],
+      isFavorite: false
+    });
+  };
+
+  #formCancelHandler = (evt) => {
+    evt.preventDefault();
+    this.#onCancel();
+  };
+
   #typeChangeHandler = (evt) => {
-    this.updateElement({type: evt.target.value});
+    this.updateElement({ type: evt.target.value });
+  };
+
+  #destinationInputHandler = (evt) => {
+    evt.target.setCustomValidity('');
   };
 
   #destinationChangeHandler = (evt) => {
     const value = evt.target.value.trim();
     const destination = this.#destinations.find((item) => item.name === value);
+
+    if (!destination) {
+      return;
+    }
+
     this.updateElement({
       destinationId: destination.id
     });
+  };
+
+  #priceInputHandler = (evt) => {
+    evt.target.value = evt.target.value.replace(/\D/g, '');
   };
 }

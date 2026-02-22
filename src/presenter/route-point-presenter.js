@@ -1,18 +1,18 @@
 import RoutePointView from '../view/route-point.js';
 import EditFormView from '../view/form-editing.js';
 import { render, replace, remove } from '../framework/render.js';
-import { Mode } from '../const.js';
+import { Mode, UserAction } from '../const.js';
 
 export default class RoutePointPresenter {
   #container;
   #point;
   #destinations;
   #offers;
+  #pointsModel;
 
   #pointView;
   #editFormView;
   #mode = Mode.DEFAULT;
-  #pointsModel;
   #onDataChange;
   #onModeChange;
 
@@ -59,15 +59,18 @@ export default class RoutePointPresenter {
     this.#replaceFormToPoint();
   };
 
-  #handleFormSubmit = (evt) => {
-    evt.preventDefault();
-    this.#replaceFormToPoint();
+  #handleFormSubmit = (updatedPoint) => {
+    this.#onDataChange(UserAction.UPDATE_POINT, updatedPoint);
+  };
+
+  #handleDeleteClick = (point) => {
+    this.#onDataChange(UserAction.DELETE_POINT, point);
   };
 
   #handleFavoriteClick = () => {
-    this.#onDataChange({
+    this.#onDataChange(UserAction.UPDATE_POINT, {
       ...this.#point,
-      isFavorite: !this.#point.isFavorite,
+      isFavorite: !this.#point.isFavorite
     });
   };
 
@@ -98,6 +101,7 @@ export default class RoutePointPresenter {
       destinations: this.#destinations,
       allOffers: this.#offers,
       onSubmit: this.#handleFormSubmit,
+      onDelete: this.#handleDeleteClick,
       onClose: this.#handleFormClose
     });
 
@@ -112,5 +116,4 @@ export default class RoutePointPresenter {
       replace(this.#editFormView, prevEditFormView);
     }
   }
-
 }

@@ -3,6 +3,7 @@ import flatpickr from 'flatpickr';
 import { HOUR_IN_MINUTES, DAY_IN_MINUTES } from '../const.js';
 
 const formatDateForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
+const formatDateForPoint = (date) => dayjs(date).format('YYYY-MM-DDTHH:mm');
 
 const destroyDatepickers = (dateFromPicker, dateToPicker) => {
   dateFromPicker?.destroy();
@@ -10,11 +11,14 @@ const destroyDatepickers = (dateFromPicker, dateToPicker) => {
 };
 
 const createDatepickers = (dateFromInput, dateToInput, dateFrom, dateTo, onDateFromChange, onDateToChange) => {
+  const startDate = dayjs(dateFrom).toDate();
+  const endDate = dayjs(dateTo).toDate();
+
   const dateFromPicker = flatpickr(dateFromInput, {
     dateFormat: 'd/m/y H:i',
     enableTime: true,
     'time_24hr': true,
-    defaultDate: dateFrom,
+    defaultDate: startDate,
     onChange: onDateFromChange
   });
 
@@ -22,8 +26,8 @@ const createDatepickers = (dateFromInput, dateToInput, dateFrom, dateTo, onDateF
     dateFormat: 'd/m/y H:i',
     enableTime: true,
     'time_24hr': true,
-    defaultDate: dateTo,
-    minDate: dateFrom,
+    defaultDate: endDate,
+    minDate: startDate,
     onChange: onDateToChange
   });
 
@@ -71,4 +75,4 @@ const formatDuration = (dateFrom, dateTo) => {
   return `${String(days).padStart(2, '0')}D ${String(restHours).padStart(2, '0')}H ${String(restMinutes).padStart(2, '0')}M`;
 };
 
-export { formatDateForInput, destroyDatepickers, createDatepickers, initDatepickers, clearDatepickers, normalizeDateRange, formatDuration };
+export { formatDateForInput, formatDateForPoint, destroyDatepickers, createDatepickers, initDatepickers, clearDatepickers, normalizeDateRange, formatDuration };
