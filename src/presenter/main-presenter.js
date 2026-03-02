@@ -31,10 +31,15 @@ export default class MainPresenter {
     this.#filterModel.addObserver(this.#handleModelEvent);
   }
 
-  #handlePointChange = (actionType, update) => {
+  #handlePointChange = async (actionType, update) => {
+    let shouldRender = true;
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointsModel.updatePoint(update);
+        try {
+          await this.#pointsModel.updatePoint(update);
+        } catch {
+          shouldRender = false;
+        }
         break;
       case UserAction.DELETE_POINT:
         this.#pointsModel.deletePoint(update);
@@ -42,6 +47,10 @@ export default class MainPresenter {
       case UserAction.ADD_POINT:
         this.#pointsModel.addPoint(update);
         break;
+    }
+
+    if (!shouldRender) {
+      return;
     }
 
     this.#clearBoard();

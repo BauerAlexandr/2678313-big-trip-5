@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { formatDateForInput, formatDateForPoint, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
-import { TYPES } from '../mock/route-point.js';
+import { TYPES } from '../const.js';
 
 export default class CreateFormView extends AbstractStatefulView{
   #destinations;

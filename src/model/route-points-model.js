@@ -1,14 +1,14 @@
-import { generateRoutePoint, destinations, offers } from '../mock/route-point';
-
 export default class RoutePointsModel {
   #points;
   #destinations;
   #offers;
+  #apiService;
 
-  constructor() {
-    this.#points = Array.from({ length: 5 }, generateRoutePoint);
-    this.#destinations = destinations;
-    this.#offers = offers;
+  constructor(apiService) {
+    this.#apiService = apiService;
+    this.#points = [];
+    this.#destinations = [];
+    this.#offers = [];
   }
 
   get points() {
@@ -21,6 +21,14 @@ export default class RoutePointsModel {
 
   setPoints(points) {
     this.#points = [...points];
+  }
+
+  setDestinations(destinations) {
+    this.#destinations = [...destinations];
+  }
+
+  setOffers(offers) {
+    this.#offers = [...offers];
   }
 
   get destinations() {
@@ -39,10 +47,24 @@ export default class RoutePointsModel {
     return this.#offers.filter((offer) => offerIds.includes(offer.id));
   }
 
-  updatePoint(updatedPoint) {
+  async init() {
+    const [points, destinations, offers] = await Promise.all([
+      this.#apiService.getPoints(),
+      this.#apiService.getDestinations(),
+      this.#apiService.getOffers()
+    ]);
+
+    this.setPoints(points);
+    this.setDestinations(destinations);
+    this.setOffers(offers);
+  }
+
+  async updatePoint(updatedPoint) {
+    const response = await this.#apiService.updatePoint(updatedPoint);
     this.#points = this.#points.map((point) =>
-      point.id === updatedPoint.id ? updatedPoint : point
+      point.id === response.id ? response : point
     );
+    return response;
   }
 
   addPoint(newPoint) {
