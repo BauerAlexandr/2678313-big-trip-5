@@ -1,7 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import 'flatpickr/dist/flatpickr.min.css';
 import { formatDateForInput, formatDateForPoint, initDatepickers, clearDatepickers, normalizeDateRange } from './date-utils.js';
-import { TYPES } from '../mock/route-point.js';
+import { TYPES } from '../const.js';
 
 export default class EditFormView extends AbstractStatefulView{
   #point;

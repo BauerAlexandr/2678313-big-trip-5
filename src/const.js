@@ -18,6 +18,8 @@ const FilterType = {
   PAST: 'past',
 };
 
+const TYPES = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
+
 const UpdateType = {
   MAJOR: 'major',
 };
@@ -32,4 +34,4 @@ const UserAction = {
 const HOUR_IN_MINUTES = 60;
 const DAY_IN_MINUTES = 1440;
 
-export { Mode, SortType, FilterType, UpdateType, UserAction, HOUR_IN_MINUTES, DAY_IN_MINUTES};
+export { Mode, SortType, FilterType, TYPES, UpdateType, UserAction, HOUR_IN_MINUTES, DAY_IN_MINUTES};

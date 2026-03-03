@@ -3,7 +3,7 @@ import flatpickr from 'flatpickr';
 import { HOUR_IN_MINUTES, DAY_IN_MINUTES } from '../const.js';
 
 const formatDateForInput = (date) => dayjs(date).format('DD/MM/YY HH:mm');
-const formatDateForPoint = (date) => dayjs(date).format('YYYY-MM-DDTHH:mm');
+const formatDateForPoint = (date) => dayjs(date).toISOString();
 
 const destroyDatepickers = (dateFromPicker, dateToPicker) => {
   dateFromPicker?.destroy();
